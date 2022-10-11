@@ -1,6 +1,5 @@
-'On Error Resume Next
 
- If WScript.Arguments.length = 0 Then
+ If WScript.Arguments.length = 0 Then 
     Set objShell = CreateObject("Shell.Application")
     'Pass a bogus argument, say [ uac]
         objShell.ShellExecute "wscript.exe", Chr(34) & _
@@ -9,11 +8,12 @@
         Set shell = CreateObject ("WScript.Shell" )
 
         verificaRar()
-        
+        a = MsgBox("verificou rar")
         donwloadIntegrador()
-        WScript.Sleep(20000)
         
         MatarProcessos()
+
+        FinalizarKeepAlive()
         
         DeletarVersaoAntiga()
         
@@ -21,7 +21,7 @@
         
         IniciarIntegrador()
         
-
+        IniciaKeepAlive()
 End If
 
 Sub HTTPDownload( myURL, myPath )
@@ -55,15 +55,16 @@ End Sub
 
 Sub DonwloadNovaVersion()
 
-    ' HTTPDownload("<URL VIDA DE SINDICO BAT>" , shell.ExpandEnvironmentStrings("C:\Windows\System32\"))
-    ' shell.Run("C:\Windows\System32\")
     On Error Resume Next
-    shell.Run("bitsadmin /transfer myDownloadJob /download /priority normal https://app.vidadesindico.com.br/linear/ilp.rar %temp%\integradorUpdate\ilpt.rar")
+
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+    Retorno = shellTemporario.Run("bitsadmin /transfer myDownloadJob /download /priority normal https://app.vidadesindico.com.br/linear/ilp.rar %temp%\integradorUpdate\ilpt.rar" , 0 , true)
+    
 
     If err.Number <> 0 Then
 
         a = MsgBox("Problema na fase de download por favor desative o seu antivirus")
-        
+        WScript.Quit
     End If
 
 End sub
@@ -75,16 +76,18 @@ Sub VerificaRar()
     Set objFSO = CreateObject("Scripting.FileSystemObject")
     
     If not objFSO.FileExists("C:\Windows\System32\rar.exe") Then
+    
+        Set shellTemporario = WScript.CreateObject("Wscript.shell")
+        Retorno = shellTemporario.Run("bitsadmin /transfer myDownloadJob /download /priority normal https://ca1.vidadesindico.com.br/download/rar.exe C:\Windows\System32\rar.exe", 0 ,True)
         
-        shell.Run("bitsadmin /transfer myDownloadJob /download /priority normal https://ca1.vidadesindico.com.br/download/rar.exe C:\Windows\System32\rar.exe")
-        
-        
+
         If err.Number <> 0 Then
 
-          a = MsgBox("Problema na fase de download por favor desative o seu antivirus")
-        
+          a = MsgBox("Problema na fase de download(Rar) por favor desative o seu antivirus")
+          WScript.Quit
+
         End If
-    
+
     End If
 
 End Sub
@@ -147,8 +150,10 @@ Sub DeletarVersaoAntiga()
 End Sub
 
 Sub MatarProcessos()
-    Shell.Run("taskkill /f /im IntegradorVDSGuaritaHCS.exe")
-    WScript.Sleep(2000)
+
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+    Retorno = shellTemporario.Run("taskkill /f /im IntegradorVDSGuaritaHCS.exe", 0 ,True)
+    
 End sub
 
 Sub IniciarIntegrador()
@@ -159,18 +164,15 @@ Sub IniciarIntegrador()
     caminho = "C:\Program Files"
     caminho86 = "C:\Program Files (x86)"
 
-    'shell.Run("""C:\Users\Public\Desktop\Integrador Linear.lnk")
 
     If objFSO.FolderExists(caminho86) Then
 
         Shell.Run("""C:\Program Files (x86)\Integrador Linear\IntegradorVDSGuaritaHCS.exe")
         
     ElseIf  objFSO.FolderExists(caminho) and objFSO.FolderExists(caminho86) <> True Then
-        aux = """C:\Program Files\Integrador Linear\IntegradorVDSGuaritaHCS.exe"
-        
-    End If
+        Shell.Run("""C:\Program Files\Integrador Linear\IntegradorVDSGuaritaHCS.exe")
 
-        
+    End If
 
 End Sub
 
@@ -178,19 +180,56 @@ Sub Extrair()
     
     Dim objFSO ,caminho86 , caminho
     set objFSO = CreateObject("Scripting.FileSystemObject")
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+    
     
     caminho = "C:\Program Files"
     caminho86 = "C:\Program Files (x86)"
 
     If objFSO.FolderExists(caminho86) Then
         
-        shell.Run("rar x %TEMP%\integradorUpdate\ilpt.rar ""C:\Program Files (x86)")
+        Retorno = shellTemporario.Run("rar x %TEMP%\integradorUpdate\ilpt.rar ""C:\Program Files (x86)", 0 , True) 
         
     ElseIf  objFSO.FolderExists(caminho) and objFSO.FolderExists(caminho86) <> True Then
         
-        shell.Run("rar x %TEMP%\integradorUpdate\ilpt.rar ""C:\Program Files")
+        Retorno = shellTemporario.Run("rar x %TEMP%\integradorUpdate\ilpt.rar ""C:\Program Files" , 0 , True)
         
     End If
 
 End Sub
 
+Sub FinalizarKeepAlive()
+
+    Dim objFolder, caminho
+    caminho = "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe"
+    caminho86 = "C:\Program Files (x86)\Integrador Linear\Integrador Tray\IntegradorTray.exe"
+    Set objFolder = CreateObject( "Scripting.FileSystemObject" )   
+
+    If objFolder.FileExists(caminho) = True or objFolder.FileExists(caminho86) = True Then
+
+        Set shellTemporario = WScript.CreateObject("Wscript.shell")
+        Retorno = shellTemporario.Run("taskkill /f /im IntegradorTray.exe", 0 ,True)
+    
+    End If
+
+End Sub
+
+Sub IniciaKeepAlive()
+
+    Dim objFolder, caminho
+    caminho = "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe"
+    caminho86 = "C:\Program Files (x86)\Integrador Linear\Integrador Tray\IntegradorTray.exe"
+    Set objFolder = CreateObject( "Scripting.FileSystemObject" )   
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+
+    If objFolder.FileExists(caminho) = True Then
+
+        Retorno = shellTemporario.Run("""" & caminho, 0 ,True)
+    
+    ElseIf objFolder.FileExists(caminho86) Then
+        
+        Retorno = shellTemporario.Run("""" & caminho86, 0 ,True)
+
+    End If
+
+End Sub
