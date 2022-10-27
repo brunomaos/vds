@@ -393,18 +393,64 @@ End Sub
 
 Sub CriarIcone
 
+    Dim atalhoIntegradorAntigo, atalhoIntegradorNovo
     Set objShell = CreateObject("WScript.Shell")
-
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
     strDesktop = objShell.SpecialFolders("desktop")
-    Set objLink = objShell.CreateShortcut(strDesktop & "\integrador.lnk")
-    objLink.TargetPath = "C:\Program Files (x86)\Integrador\Integrador.exe"
+    Set objLink = objShell.CreateShortcut(strDesktop & "\Integrador.lnk")
     
+    atalhoDesktopAntigo =  objShell.ExpandEnvironmentStrings("%PUBLIC%\Desktop\Integrador Linear.lnk")
+    atalhoDesktopNovo =  objShell.ExpandEnvironmentStrings("%PUBLIC%\Desktop\Integrador.lnk")
+    atalhoIntegradorAntigo = objShell.ExpandEnvironmentStrings("%APPDATA%\Microsoft\Windows\start menu\programs\startup\IntegradorVDSGuaritaHCS.lnk")
+    atalhoIntegradorNovo =  objShell.ExpandEnvironmentStrings("%APPDATA%\Microsoft\Windows\start menu\programs\startup\Integrador.lnk")
+    
+    If objFSO.FileExists(atalhoIntegradorAntigo) = True or objFSO.FileExists(atalhoIntegradorNovo) = True Then
+        
+
+        If objFSO.FileExists(atalhoIntegradorAntigo) = true Then
+            
+            objFSO.DeleteFile(atalhoIntegradorAntigo)
+
+        ElseIf objFSO.FileExists(atalhoIntegradorNovo)  = true Then
+            
+            objFSO.DeleteFile(atalhoIntegradorNovo)
+        end if
+    End If
+    
+    If objFSO.FileExists(atalhoDesktopAntigo)  = True Then
+            
+            objFSO.DeleteFile(atalhoDesktopAntigo)
+
+    ElseIf objFSO.FileExists(atalhoDesktopNovo)  = True Then
+            
+            objFSO.DeleteFile(atalhoDesktopNovo)
+
+    End If
+
+    
+    
+
+    If objFSO.FileExists("C:\Program Files (x86)\Integrador\Integrador.exe") = True and objFSO.FileExists("C:\Program Files\Integrador\Integrador.exe") = False Then
+
+        objLink.IconLocation = "C:\Program Files (x86)\Integrador\Resources\logo.ico"
+        objLink.TargetPath = "C:\Program Files (x86)\Integrador\Integrador.exe"
+    
+    ElseIf objFSO.FileExists("C:\Program Files (x86)\Integrador\Integrador.exe") = False And bjsFSO.FileSystem("C:\Program Files\Integrador\Integrador.exe") = True Then
+        
+        objLink.IconLocation = "C:\Program Files\Integrador\Resources\logo.ico"
+        objLink.TargetPath = "C:\Program Files\Integrador\Integrador.exe"
+
+    End If
+
+
     objLink.WorkingDirectory = "%HOMEDRIVE%%HOMEPATH%"
-    objLink.IconLocation = "C:\Program Files (x86)\Integrador\Resources\logo.ico"
     objLink.Description = "Atalho integrador"
     objLink.Save
+    
 
-    objShell.Run("xcopy integrador.lnk ""%APPDATA%\Microsoft\Windows\start menu\programs\startup"" /y")
+    Retorno = shellTemporario.Run("xcopy integrador.lnk ""%APPDATA%\Microsoft\Windows\start menu\programs\startup"" /y", 0)
+    
 
 End Sub
 

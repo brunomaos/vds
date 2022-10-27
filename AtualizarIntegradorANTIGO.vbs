@@ -49,7 +49,7 @@ m_StatusBarText = m_StatusBarText & "|"
 m_ProgressBar.Document.GetElementById("statusbar").InnerHtml = m_StatusBarText
 m_ProgressBar.Document.title = n & "% Completado : " & m_Title
 m_ProgressBar.Document.GetElementById("pc").InnerHtml = n & "% Completado : " & m_Title
-wscript.sleep 5
+wscript.sleep 20
 Next
 m_ProgressBar.Document.GetElementById("statusbar").InnerHtml = m_StatusBarText
 m_ProgressBar.Document.title = m_PercentComplete & "% Completado : " & m_Title
@@ -83,7 +83,9 @@ If WScript.Arguments.length = 0 Then
         
         pb.SetText("Verificando se existe rar instalado")
         pb.Update(percentComplete)
+        
         verificaRar()
+        
         percentComplete = percentComplete + 15
         pb.Update(percentComplete)
         
@@ -148,16 +150,18 @@ If WScript.Arguments.length = 0 Then
         percentComplete = percentComplete
         pb.Update(percentComplete)
 
-        IniciaKeepAlive()
-        MsgBox("saiu keep")
+        pb.Close()
 
+        IniciaKeepAlive()
+
+        percentComplete = 100
+        pb.Update(percentComplete)
+        
         HabilitarWindowsDefender()
 
         ExcluirRegraWindowsDefender()
         
-        pb.Close()
-
-        wscript.quit
+        Wscript.quit
 End If
 
 Sub HTTPDownload( myURL, myPath )
@@ -353,18 +357,18 @@ End Sub
 Sub IniciaKeepAlive()
     
     Dim objFolder, caminho
-    caminho = "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe"
-    caminho86 = "C:\Program Files (x86)\Integrador Linear\Integrador Tray\IntegradorTray.exe"
     Set objFolder = CreateObject( "Scripting.FileSystemObject" )   
     Set shellTemporario = WScript.CreateObject("Wscript.shell")
+    caminho86 = shellTemporario.ExpandEnvironmentStrings("C:\Program Files (x86)\Integrador Linear\Integrador Tray\IntegradorTray.exe")
+    caminho = shellTemporario.ExpandEnvironmentStrings( "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe")
 
     If objFolder.FileExists(caminho) = True Then
          MsgBox(caminho)
-        Retorno = shellTemporario.Run("""" & caminho, 0 ,True)
+        Retorno = shellTemporario.Run("""" & caminho, 0 )
     
     ElseIf objFolder.FileExists(caminho86) Then
          MsgBox(caminho86)
-        Retorno = shellTemporario.Run("""" & caminho86, 0 ,True)
+        Retorno = shellTemporario.Run("""" & caminho86, 0 )
 
     End If
 
