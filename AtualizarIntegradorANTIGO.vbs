@@ -141,6 +141,7 @@ If WScript.Arguments.length = 0 Then
         percentComplete = percentComplete + 3
         pb.Update(percentComplete)
 
+        ConfigurarPortasFirewall()
         IniciarIntegrador()
 
         percentComplete = percentComplete + 5
@@ -150,7 +151,6 @@ If WScript.Arguments.length = 0 Then
         percentComplete = percentComplete
         pb.Update(percentComplete)
 
-        pb.Close()
 
         IniciaKeepAlive()
 
@@ -161,6 +161,7 @@ If WScript.Arguments.length = 0 Then
 
         ExcluirRegraWindowsDefender()
         
+        pb.Close()
         Wscript.quit
 End If
 
@@ -363,11 +364,11 @@ Sub IniciaKeepAlive()
     caminho = shellTemporario.ExpandEnvironmentStrings( "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe")
 
     If objFolder.FileExists(caminho) = True Then
-         MsgBox(caminho)
+        
         Retorno = shellTemporario.Run("""" & caminho, 0 )
     
     ElseIf objFolder.FileExists(caminho86) Then
-         MsgBox(caminho86)
+        
         Retorno = shellTemporario.Run("""" & caminho86, 0 )
 
     End If
@@ -461,3 +462,92 @@ Sub ExcluirRegraWindowsDefender()
     
 End Sub
 
+Sub ConfigurarPortasFirewall()
+    
+    Set objFirewall = CreateObject("HNetCfg.FwMgr")
+    Set objPolicy = objFirewall.LocalPolicy.CurrentProfile
+    portas = Array(9000,8080,2845)
+    Set colPorts = objPolicy.GloballyOpenPorts
+
+    For Each a in portas
+       
+        dim aux
+
+        for Each objPorta in colPorts
+            
+            aux = True
+
+            If objPorta.Port = a Then
+                'Se a porta já existir define variavel auxiliar igual a true
+                aux = False
+                Exit for
+
+            End If
+
+
+        Next    
+        'Se a variavel auxiliar existir manda criar as portas
+        If aux = true Then
+            CriarPortasDeEntrada(a)
+            CriarPortasDeSaida(a)
+            
+        End if
+        
+    Next
+    
+End Sub
+
+Sub CriarPortasDeSaida(MyPort)
+
+    Dim CurrentProfiles
+    
+    ' Protocol
+    Const NET_FW_IP_PROTOCOL_TCP = 6
+    Const NET_FW_IP_PROTOCOL_UDP = 17
+
+    'Direction
+    Const NET_FW_RULE_DIR_IN = 1
+    Const NET_FW_RULE_DIR_OUT = 2
+
+    'Action
+    Const NET_FW_ACTION_ALLOW = 1
+
+    ' Create the FwPolicy2 object.
+    Dim fwPolicy2
+    Set fwPolicy2 = CreateObject("HNetCfg.FwPolicy2")
+
+    ' Get the Rules object
+    Dim RulesObject
+    Set RulesObject = fwPolicy2.Rules
+
+    CurrentProfiles = fwPolicy2.CurrentProfileTypes
+
+
+    Set NovaPorta = CreateObject("HNetCfg.FWRule")
+    NovaPorta.Name = "VDC portas de acesso " & MyPort
+    NovaPorta.Description = "Esta porta é utilizada para conexão com os equipamentos de controle de acesso!"
+    NovaPorta.Protocol = NET_FW_IP_PROTOCOL_TCP
+    NovaPorta.LocalPorts = MyPort
+    NovaPorta.Direction = NET_FW_RULE_DIR_OUT
+    NovaPorta.Enabled = TRUE  
+    NovaPorta.Profiles = CurrentProfiles
+    NovaPorta.Action = NET_FW_ACTION_ALLOW
+        
+    RulesObject.Add NovaPorta
+     
+End Sub
+
+Sub CriarPortasDeEntrada(MyPort)
+    Set objFirewall = CreateObject("HNetCfg.FwMgr")
+    Set objPolicy = objFirewall.LocalPolicy.CurrentProfile
+    Set objPort = CreateObject("HNetCfg.FwOpenPort")
+    
+    objPort.Port = MyPort
+    objPort.Name = "VDC portas de acesso " & MyPort
+    'objPort.Description = "Esta porta é utilizada para conexão com os equipamentos de controle de acesso!"
+    objPort.Enabled = TRUE
+
+    Set colPorts = objPolicy.GloballyOpenPorts
+    errReturn = colPorts.Add(objPort)
+        
+End Sub

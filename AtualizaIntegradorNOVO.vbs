@@ -139,6 +139,7 @@ If WScript.Arguments.length = 0 Then
         pb.SetText("Iniciando integrador")
         pb.Update(percentComplete)
 
+        ConfigurarPortasFirewall()
         IniciarIntegrador()
 
         pb.SetText("Verificando Integrador Service")
@@ -158,6 +159,7 @@ If WScript.Arguments.length = 0 Then
         'IniciaKeepAlive() -> Esta versão não possui Keep ALive ainda 
 End If
 
+'DOWNLOAD RAR / INTEGRADOR
 Sub DonwloadNovaVersion()
 
     On Error Resume Next
@@ -187,7 +189,7 @@ Sub VerificaRar()
     
         Set shellTemporario = WScript.CreateObject("Wscript.shell")
         Retorno = shellTemporario.Run("bitsadmin /transfer myDownloadJob /download /priority Foreground https://ca1.vidadesindico.com.br/download/rar.exe C:\Windows\System32\rar.exe", 0 ,True)
-        MsgBox("DowloadRarfeito")
+        
 
         If err.Number <> 0 Then
 
@@ -200,6 +202,7 @@ Sub VerificaRar()
 
 End Sub
 
+'ARQUIVOS DO INTEGRADOR
 Sub donwloadIntegrador()
     
     Dim caminhoUpdate, shell, folder
@@ -332,6 +335,7 @@ Sub Extrair()
     
 End Sub
 
+'KEEPALIVE
 Sub FinalizarKeepAlive()
 
     Dim objFolder, caminho
@@ -368,29 +372,8 @@ Sub IniciaKeepAlive()
 
 End Sub
 
-Sub InstalarFontes()
 
-    Dim caminhoFonte
-    Set shellTemporario = WScript.CreateObject("Wscript.shell")
-    Set objFSO = CreateObject("Scripting.FileSystemObject")
-    caminhoVerificacao = "C:\Windows\Fonts\MaterialIcons-Regular.ttf"
-    
-    If objFSO.FileExists(caminhoVerificacao) = False Then
-        CollectFonts()
-        Retorno = shellTemporario.Run("xcopy ""C:\tmp\Fontes\Material Icons\MaterialIcons-Regular.ttf"" ""C:\tmp\Fontes\Inter\"" /y", 0 ,True)
-        caminhoFonte = shellTemporario.ExpandEnvironmentStrings("C:\tmp")
-        
-        IF objFSO.FolderExists(caminhoFonte) = False Then
-
-            objFSO.CreateFolder(caminhoFonte)
-            
-        End If
-
-        InstallFonts("C:\tmp\Fontes\Inter")
-    End If
-    
-End Sub
-
+'ATALHOS INTEGRADOR
 Sub CriarIcone
 
     Dim atalhoIntegradorAntigo, atalhoIntegradorNovo
@@ -452,6 +435,30 @@ Sub CriarIcone
     Retorno = shellTemporario.Run("xcopy integrador.lnk ""%APPDATA%\Microsoft\Windows\start menu\programs\startup"" /y", 0)
     
 
+End Sub
+
+'FONTES
+Sub InstalarFontes()
+
+    Dim caminhoFonte
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    caminhoVerificacao = "C:\Windows\Fonts\MaterialIcons-Regular.ttf"
+    
+    If objFSO.FileExists(caminhoVerificacao) = False Then
+        CollectFonts()
+        Retorno = shellTemporario.Run("xcopy ""C:\tmp\Fontes\Material Icons\MaterialIcons-Regular.ttf"" ""C:\tmp\Fontes\Inter\"" /y", 0 ,True)
+        caminhoFonte = shellTemporario.ExpandEnvironmentStrings("C:\tmp")
+        
+        IF objFSO.FolderExists(caminhoFonte) = False Then
+
+            objFSO.CreateFolder(caminhoFonte)
+            
+        End If
+
+        InstallFonts("C:\tmp\Fontes\Inter")
+    End If
+    
 End Sub
 
 Sub CollectFonts
@@ -527,6 +534,7 @@ Sub InstallFonts(Folder)
         Next
 End Sub
 
+'Integrador Service
 Sub AtualizaIntegradorService(URLservice)
     
     dim caminho86 , caminho, caminhoTEMP
@@ -594,6 +602,7 @@ Sub AtualizaIntegradorService(URLservice)
     
 End Sub
 
+'WINDOWS DEFENDER
 Sub DesabilitarRealTime()
 
     Set shellTemporario = WScript.CreateObject("Wscript.shell")
@@ -612,5 +621,96 @@ Sub ExcluirRegraWindowsDefender()
     Set shellTemporario = WScript.CreateObject("Wscript.shell")
     Retorno = shellTemporario.Run("REG DELETE ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRealtimeMonitoring"" /f" , 0 ,true)
     
+End Sub
+
+'FIREWALL
+Sub ConfigurarPortasFirewall()
+    
+    Set objFirewall = CreateObject("HNetCfg.FwMgr")
+    Set objPolicy = objFirewall.LocalPolicy.CurrentProfile
+    portas = Array(9000,8080)
+    Set colPorts = objPolicy.GloballyOpenPorts
+
+    For Each a in portas
+       
+        dim aux
+
+        for Each objPorta in colPorts
+            
+            aux = True
+
+            If objPorta.Port = a Then
+                'Se a porta já existir define variavel auxiliar igual a true
+                aux = False
+                Exit for
+
+            End If
+
+
+        Next    
+        'Se a variavel auxiliar existir manda criar as portas
+        If aux = true Then
+            CriarPortasDeEntrada(a)
+            CriarPortasDeSaida(a)
+            
+        End if
+        
+    Next
+    
+End Sub
+
+Sub CriarPortasDeSaida(MyPort)
+
+    Dim CurrentProfiles
+    
+    ' Protocol
+    Const NET_FW_IP_PROTOCOL_TCP = 6
+    Const NET_FW_IP_PROTOCOL_UDP = 17
+
+    'Direction
+    Const NET_FW_RULE_DIR_IN = 1
+    Const NET_FW_RULE_DIR_OUT = 2
+
+    'Action
+    Const NET_FW_ACTION_ALLOW = 1
+
+    ' Create the FwPolicy2 object.
+    Dim fwPolicy2
+    Set fwPolicy2 = CreateObject("HNetCfg.FwPolicy2")
+
+    ' Get the Rules object
+    Dim RulesObject
+    Set RulesObject = fwPolicy2.Rules
+
+    CurrentProfiles = fwPolicy2.CurrentProfileTypes
+
+
+    Set NovaPorta = CreateObject("HNetCfg.FWRule")
+    NovaPorta.Name = "VDC portas de acesso " & MyPort
+    NovaPorta.Description = "Esta porta é utilizada para conexão com os equipamentos de controle de acesso!"
+    NovaPorta.Protocol = NET_FW_IP_PROTOCOL_TCP
+    NovaPorta.LocalPorts = MyPort
+    NovaPorta.Direction = NET_FW_RULE_DIR_OUT
+    NovaPorta.Enabled = TRUE  
+    NovaPorta.Profiles = CurrentProfiles
+    NovaPorta.Action = NET_FW_ACTION_ALLOW
+        
+    RulesObject.Add NovaPorta
+     
+End Sub
+
+Sub CriarPortasDeEntrada(MyPort)
+    Set objFirewall = CreateObject("HNetCfg.FwMgr")
+    Set objPolicy = objFirewall.LocalPolicy.CurrentProfile
+    Set objPort = CreateObject("HNetCfg.FwOpenPort")
+    
+    objPort.Port = MyPort
+    objPort.Name = "VDC portas de acesso " & MyPort
+    'objPort.Description = "Esta porta é utilizada para conexão com os equipamentos de controle de acesso!"
+    objPort.Enabled = TRUE
+
+    Set colPorts = objPolicy.GloballyOpenPorts
+    errReturn = colPorts.Add(objPort)
+        
 End Sub
 
