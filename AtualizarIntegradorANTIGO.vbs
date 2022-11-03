@@ -30,9 +30,9 @@ End Function
 Public Function Show()
 Set m_ProgressBar = CreateObject("InternetExplorer.Application")
 'in code, the colon acts as a line feed
-m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 400 : m_ProgressBar.height = 100 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
+m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 500 : m_ProgressBar.height = 150 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
 m_ProgressBar.document.write "<body Scroll=no style='margin:0px;padding:0px;'><div style='text-align:center;'><span name='pc' id='pc'>0</span></div>"
-m_ProgressBar.document.write "<div id='statusbar' name='statusbar' style='border:1px solid blue;line-height:10px;height:10px;color:green;'></div>"
+m_ProgressBar.document.write "<div id='statusbar' name='statusbar' style='border:1px solid green;line-height:10px;height:12px;color:green;'></div>"
 m_ProgressBar.document.write "<div style='text-align:center'><span id='text' name='text'></span></div>"
 End Function
 
@@ -466,7 +466,7 @@ Sub ConfigurarPortasFirewall()
     
     Set objFirewall = CreateObject("HNetCfg.FwMgr")
     Set objPolicy = objFirewall.LocalPolicy.CurrentProfile
-    portas = Array(9000,8080,2845)
+    portas = Array(9000,9001,8080,4370,1600,80,5010,8282,8181,4370,9870,8383,8686,9762,9762,9100,9765,2845,10057,5432,5433)
     Set colPorts = objPolicy.GloballyOpenPorts
 
     For Each a in portas

@@ -30,9 +30,9 @@ End Function
 Public Function Show()
 Set m_ProgressBar = CreateObject("InternetExplorer.Application")
 'in code, the colon acts as a line feed
-m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 400 : m_ProgressBar.height = 100 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
+m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 500 : m_ProgressBar.height = 150 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
 m_ProgressBar.document.write "<body Scroll=no style='margin:0px;padding:0px;'><div style='text-align:center;'><span name='pc' id='pc'>0</span></div>"
-m_ProgressBar.document.write "<div id='statusbar' name='statusbar' style='border:1px solid blue;line-height:10px;height:10px;color:green;'></div>"
+m_ProgressBar.document.write "<div id='statusbar' name='statusbar' style='border:1px solid green;line-height:10px;height:12px;color:green;'></div>"
 m_ProgressBar.document.write "<div style='text-align:center'><span id='text' name='text'></span></div>"
 End Function
 
@@ -69,6 +69,7 @@ If WScript.Arguments.length = 0 Then
 
 
         Const URLservice = "https://app.vidadesindico.com.br/linear/isn.rar"
+
         Set shell = CreateObject ("WScript.Shell" )
         Dim pb
         Dim percentComplete
@@ -85,7 +86,7 @@ If WScript.Arguments.length = 0 Then
         verificaRar()
         percentComplete = percentComplete + 10
         pb.Update(percentComplete)
-
+        
         
         pb.SetText("Fazendo download do integrador")
         pb.Update(percentComplete)
@@ -150,6 +151,7 @@ If WScript.Arguments.length = 0 Then
         percentComplete = percentComplete + 20
         pb.Update(percentComplete)
 
+        IniciaKeepAlive()
         HabilitarWindowsDefender()
         ExcluirRegraWindowsDefender()
 
@@ -168,15 +170,16 @@ Sub DonwloadNovaVersion()
     
     Retorno = shellTemporario.Run("bitsadmin /transfer myDownloadJob /download /priority Foreground https://app.vidadesindico.com.br/linear/ilpn.rar %temp%\integradorUpdate\ilpt.rar" , 0 , true)    
     Retorno = shellTemporario.Run("bitsadmin /transfer myDownloadJob /download /priority Foreground https://app.vidadesindico.com.br/linear/f.rar %temp%\integradorUpdate\f.rar" , 0 , true)
-   
+    
 
     If err.Number <> 0 Then
 
         MsgBox("Problema na fase de download(Rar) Por favor Desabilite seu antivirus")
+        pb.Close()
         WScript.Quit
 
     End If
-
+    
 End sub
 
 Sub VerificaRar()
@@ -240,7 +243,7 @@ Sub DeletarVersaoAntiga()
 
     
     On Error Resume Next
-    Dim objFSO, folder , caminho86 , caminho
+    Dim objFSO, Folder , caminho86 , caminho
     set objFSO=CreateObject("Scripting.FileSystemObject")
     Const DeleteReadOnly = TRUE
 
@@ -249,25 +252,25 @@ Sub DeletarVersaoAntiga()
 
     If objFSO.FolderExists(caminho86) Then
 
-        If objFolder.FolderExists(caminho86 & "\integrador Linear") = true or objFolder.FolderExists(caminho & "\integrador") = True Then
+        If objFolder.FolderExists(caminho86 & "\integrador Linear") = true or objFolder.FolderExists(caminho86 & "\integrador") = True Then
 
-            Folder="C:\Program files (x86)\Integrador Linear*"
-            objFSO.DeleteFolder(folder)       
+            Folder ="C:\Program files (x86)\Integrador Linear*"
+            objFSO.DeleteFolder(Folder)       
 
             Folder="C:\Program files (x86)\Integrador*"
-            objFSO.DeleteFolder(folder)       
-
+            objFSO.DeleteFolder(Folder)       
+            
         End If
         
     ElseIf  objFSO.FolderExists(caminho) and objFSO.FolderExists(caminho86) <> True Then
     
-        If objFolder.FolderExists(caminho86 & "\integrador Linear") = true or objFolder.FolderExists(caminho & "\integrador") = True Then
+        If objFolder.FolderExists(caminho & "\integrador Linear") = true or objFolder.FolderExists(caminho & "\integrador") = True Then
 
             Folder="C:\Program files\Integrador Linear*"
-            objFSO.DeleteFolder(folder)       
+            objFSO.DeleteFolder(Folder)       
             
             Folder="C:\Program files\Integrador*"
-            objFSO.DeleteFolder(folder)       
+            objFSO.DeleteFolder(Folder)       
 
         End If
 
@@ -339,11 +342,15 @@ End Sub
 Sub FinalizarKeepAlive()
 
     Dim objFolder, caminho
+
+    caminhoNovo = "C:\Program Files\Integrador\Tray\IntegradorTray.exe"
+    caminho86Novo = "C:\Program Files (x86)\Integrador\Tray\IntegradorTray.exe"
+
     caminho = "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe"
     caminho86 = "C:\Program Files (x86)\Integrador Linear\Integrador Tray\IntegradorTray.exe"
     Set objFolder = CreateObject( "Scripting.FileSystemObject" )   
 
-    If objFolder.FileExists(caminho) = True or objFolder.FileExists(caminho86) = True Then
+    If objFolder.FileExists(caminho) = True or objFolder.FileExists(caminho86) = True or objFolder.FileExists(caminhoNovo) = True or objFolder.FileExists(caminho86Novo) = True Then
 
         Set shellTemporario = WScript.CreateObject("Wscript.shell")
         Retorno = shellTemporario.Run("taskkill /f /im IntegradorTray.exe", 0 ,True)
@@ -355,18 +362,18 @@ End Sub
 Sub IniciaKeepAlive()
 
     Dim objFolder, caminho
-    caminho = "C:\Program Files\Integrador Linear\Integrador Tray\IntegradorTray.exe"
-    caminho86 = "C:\Program Files (x86)\Integrador Linear\Integrador Tray\IntegradorTray.exe"
+    caminho = "C:\Program Files\Integrador\Tray\IntegradorTray.exe"
+    caminho86 = "C:\Program Files (x86)\Integrador\Tray\IntegradorTray.exe"
     Set objFolder = CreateObject( "Scripting.FileSystemObject" )   
     Set shellTemporario = WScript.CreateObject("Wscript.shell")
 
     If objFolder.FileExists(caminho) = True Then
 
-        Retorno = shellTemporario.Run("""" & caminho, 0 ,True)
+        Retorno = shellTemporario.Run("""" & caminho, 0 )
     
     ElseIf objFolder.FileExists(caminho86) Then
         
-        Retorno = shellTemporario.Run("""" & caminho86, 0 ,True)
+        Retorno = shellTemporario.Run("""" & caminho86, 0 )
 
     End If
 
@@ -419,7 +426,7 @@ Sub CriarIcone
         objLink.IconLocation = "C:\Program Files (x86)\Integrador\Resources\logo.ico"
         objLink.TargetPath = "C:\Program Files (x86)\Integrador\Integrador.exe"
     
-    ElseIf objFSO.FileExists("C:\Program Files (x86)\Integrador\Integrador.exe") = False And bjsFSO.FileSystem("C:\Program Files\Integrador\Integrador.exe") = True Then
+    ElseIf objFSO.FileExists("C:\Program Files (x86)\Integrador\Integrador.exe") = False And objFSO.FileExists("C:\Program Files\Integrador\Integrador.exe") = True Then
         
         objLink.IconLocation = "C:\Program Files\Integrador\Resources\logo.ico"
         objLink.TargetPath = "C:\Program Files\Integrador\Integrador.exe"
@@ -628,7 +635,7 @@ Sub ConfigurarPortasFirewall()
     
     Set objFirewall = CreateObject("HNetCfg.FwMgr")
     Set objPolicy = objFirewall.LocalPolicy.CurrentProfile
-    portas = Array(9000,8080)
+    portas = Array(9000,9001,8080,4370,1600,80,5010,8282,8181,4370,9870,8383,8686,9762,9762,9100,9765,2845,10057,5432,5433)
     Set colPorts = objPolicy.GloballyOpenPorts
 
     For Each a in portas
@@ -650,6 +657,7 @@ Sub ConfigurarPortasFirewall()
         Next    
         'Se a variavel auxiliar existir manda criar as portas
         If aux = true Then
+            
             CriarPortasDeEntrada(a)
             CriarPortasDeSaida(a)
             
