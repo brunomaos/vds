@@ -30,7 +30,7 @@ End Function
 Public Function Show()
 Set m_ProgressBar = CreateObject("InternetExplorer.Application")
 'in code, the colon acts as a line feed
-m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 500 : m_ProgressBar.height = 150 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
+m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 400 : m_ProgressBar.height = 150 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
 m_ProgressBar.document.write "<body Scroll=no style='margin:0px;padding:0px;'><div style='text-align:center;'><span name='pc' id='pc'>0</span></div>"
 m_ProgressBar.document.write "<div id='statusbar' name='statusbar' style='border:1px solid green;line-height:10px;height:12px;color:green;'></div>"
 m_ProgressBar.document.write "<div style='text-align:center'><span id='text' name='text'></span></div>"
@@ -66,7 +66,6 @@ If WScript.Arguments.length = 0 Then
         objShell.ShellExecute "wscript.exe", Chr(34) & _
           WScript.ScriptFullName & Chr(34) & " uac", "", "runas", 1
     Else    
-
 
         Const URLservice = "https://app.vidadesindico.com.br/linear/isn.rar"
 
@@ -174,8 +173,9 @@ Sub DonwloadNovaVersion()
 
     If err.Number <> 0 Then
 
+        OpenDefender()
         MsgBox("Problema na fase de download(Rar) Por favor Desabilite seu antivirus")
-        pb.Close()
+        
         WScript.Quit
 
     End If
@@ -196,6 +196,7 @@ Sub VerificaRar()
 
         If err.Number <> 0 Then
 
+            OpenDefender()
             MsgBox("Problema na fase de download(Rar) Por favor desabilite a protecao em tempo real do seu antivirus")
             WScript.Quit
 
@@ -447,10 +448,11 @@ End Sub
 'FONTES
 Sub InstalarFontes()
 
-    Dim caminhoFonte
+    Dim caminhoFonte, caminhoVerificacao
     Set shellTemporario = WScript.CreateObject("Wscript.shell")
     Set objFSO = CreateObject("Scripting.FileSystemObject")
-    caminhoVerificacao = "C:\Windows\Fonts\MaterialIcons-Regular.ttf"
+    
+    caminhoVerificacao = shellTemporario.ExpandEnvironmentStrings("%USERPROFILE%\AppData\Local\Microsoft\Windows\Fonts\MaterialIcons-Regular.ttf")
     
     If objFSO.FileExists(caminhoVerificacao) = False Then
         CollectFonts()
@@ -628,6 +630,18 @@ Sub ExcluirRegraWindowsDefender()
     Set shellTemporario = WScript.CreateObject("Wscript.shell")
     Retorno = shellTemporario.Run("REG DELETE ""HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection"" /v ""DisableRealtimeMonitoring"" /f" , 0 ,true)
     
+End Sub
+
+Sub OpenDefender()
+
+    Dim tCommand
+
+    tCommand = CreateObject("WScript.Shell").ExpandEnvironmentStrings("%ProgramFiles%\Windows Defender\MSASCui.exe")
+    If Not (CreateObject("Scripting.FileSystemObject").FileExists(tCommand)) Then tCommand = "windowsdefender://Threatsettings"
+    Set shellTemporario = WScript.CreateObject("Wscript.shell")
+
+    shellTemporario.Run(tCommand)
+
 End Sub
 
 'FIREWALL

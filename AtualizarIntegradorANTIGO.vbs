@@ -30,7 +30,7 @@ End Function
 Public Function Show()
 Set m_ProgressBar = CreateObject("InternetExplorer.Application")
 'in code, the colon acts as a line feed
-m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 500 : m_ProgressBar.height = 150 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
+m_ProgressBar.navigate2 "about:blank" : m_ProgressBar.width = 400 : m_ProgressBar.height = 150 : m_ProgressBar.toolbar = false : m_ProgressBar.menubar = false : m_ProgressBar.statusbar = false : m_ProgressBar.visible = True
 m_ProgressBar.document.write "<body Scroll=no style='margin:0px;padding:0px;'><div style='text-align:center;'><span name='pc' id='pc'>0</span></div>"
 m_ProgressBar.document.write "<div id='statusbar' name='statusbar' style='border:1px solid green;line-height:10px;height:12px;color:green;'></div>"
 m_ProgressBar.document.write "<div style='text-align:center'><span id='text' name='text'></span></div>"
